@@ -6,42 +6,54 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Minus, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { API_URL } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+
+
 
 
 export default function CartPage() {
   const { items, removeFromCart, updateQuantity, totalPrice, clearCart } =
     useCart();
+  const { user } = useAuth();
+  const router = useRouter();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState(false);
+
 
   const shipping = totalPrice > 150 ? 0 : 15;
   const finalTotal = totalPrice + shipping;
 
   const handleCheckout = async () => {
+    if (!user) {
+      router.push("/login?redirect=cart");
+      return;
+    }
+
     setIsCheckingOut(true);
     try {
+      // Create order on the backend
       const res = await fetch(`${API_URL}/api/checkout`, {
-
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: "customer@example.com", // Mock user
-          items: items.map((i) => ({ id: i.product.id, quantity: i.quantity })),
+          email: user.email,
+          items: items.map(item => ({ id: item.product.id, quantity: item.quantity }))
         }),
       });
 
-      if (res.ok) {
-        setOrderConfirmed(true);
-        clearCart();
-      } else {
-        alert("Checkout failed. Please try again.");
-      }
+      if (!res.ok) throw new Error("Checkout failed");
+      
+      setOrderConfirmed(true);
+      clearCart();
     } catch (error) {
       console.error(error);
-      alert("Checkout failed. Please ensure the backend is running.");
+      alert("Checkout failed. Please try again.");
+    } finally {
+      setIsCheckingOut(false);
     }
-    setIsCheckingOut(false);
   };
+
 
   if (orderConfirmed) {
     return (

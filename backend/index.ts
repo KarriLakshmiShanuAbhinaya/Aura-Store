@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import crypto from 'crypto';
+
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
@@ -18,6 +20,7 @@ const pool = new Pool({
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
+// Environment check
 const FRONTEND_URL = process.env.FRONTEND_URL || '*';
 app.use(cors({
   origin: FRONTEND_URL === '*' ? '*' : [FRONTEND_URL, 'http://localhost:3000'],
@@ -79,10 +82,21 @@ app.get('/api/categories', async (req, res) => {
   }
 });
 
-// Products with seller info
+// Products with search and seller info
 app.get('/api/products', async (req, res) => {
   try {
+    const { search } = req.query;
+    const where = search 
+      ? { 
+          OR: [
+            { name: { contains: String(search), mode: 'insensitive' as any } },
+            { description: { contains: String(search), mode: 'insensitive' as any } }
+          ]
+        } 
+      : {};
+
     const products = await prisma.product.findMany({
+      where,
       include: { 
         category: true,
         seller: { select: { name: true } }
@@ -90,6 +104,7 @@ app.get('/api/products', async (req, res) => {
     });
     res.json(products);
   } catch (error) {
+    console.error('Search error:', error);
     res.status(500).json({ error: 'Failed to fetch products' });
   }
 });
@@ -145,6 +160,7 @@ app.post('/api/products', async (req, res) => {
     res.status(500).json({ error: error.message || 'Failed' });
   }
 });
+
 
 app.use((req, res) => res.status(404).json({ error: 'Not Found' }));
 

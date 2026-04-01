@@ -1,25 +1,43 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, User as UserIcon, LogOut, LayoutDashboard } from "lucide-react";
+import { ShoppingCart, User as UserIcon, LogOut, LayoutDashboard, Search, X } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 
 export default function Navbar() {
   const { totalItems } = useCart();
   const { user, logout } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams?.get("search") || "");
+
+  useEffect(() => {
+    setSearchQuery(searchParams?.get("search") || "");
+  }, [searchParams]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      router.push("/");
+    }
+  };
 
   return (
     <nav className="w-full border-b border-zinc-200 bg-white/80 dark:border-zinc-800 dark:bg-black/80 backdrop-blur-md sticky top-0 z-50">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 justify-between items-center">
-          <div className="flex items-center gap-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 justify-between items-center gap-4">
+          <div className="flex items-center gap-8 shrink-0">
             <Link href="/" className="flex items-center gap-2">
               <span className="text-xl font-extrabold tracking-tighter text-emerald-600 dark:text-emerald-500">
                 AURA
               </span>
             </Link>
-            <div className="hidden md:flex gap-6 text-sm font-semibold text-zinc-500 dark:text-zinc-400">
+            <div className="hidden lg:flex gap-6 text-sm font-semibold text-zinc-500 dark:text-zinc-400">
               <Link href="/" className="hover:text-black dark:hover:text-white transition-colors">
                 Explore
               </Link>
@@ -31,8 +49,37 @@ export default function Navbar() {
               )}
             </div>
           </div>
+
+          {/* Search Bar - Professional Look */}
+          <div className="flex-1 max-w-md hidden md:block">
+            <form onSubmit={handleSearch} className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-zinc-400 group-focus-within:text-emerald-500 transition-colors" />
+              </div>
+              <input
+                type="text"
+                name="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search products..."
+                className="block w-full pl-10 pr-10 py-1.5 text-sm bg-zinc-100 dark:bg-zinc-900 border-transparent focus:border-emerald-500/50 focus:bg-white dark:focus:bg-black focus:ring-4 focus:ring-emerald-500/10 rounded-xl transition-all outline-none text-zinc-900 dark:text-zinc-100"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("");
+                    router.push("/");
+                  }}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </form>
+          </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <Link href="/cart" className="p-2 text-zinc-600 hover:text-black dark:text-zinc-400 dark:hover:text-white transition-colors relative">
               <ShoppingCart className="h-5 w-5" />
               {totalItems > 0 && (

@@ -4,12 +4,15 @@ import { Product } from "@/types";
 import { API_URL } from "@/lib/api";
 
 
-async function getProducts(): Promise<Product[]> {
+async function getProducts(search?: string): Promise<Product[]> {
   try {
-    const res = await fetch(`${API_URL}/api/products`, {
+    const url = search 
+      ? `${API_URL}/api/products?search=${encodeURIComponent(search)}`
+      : `${API_URL}/api/products`;
+      
+    const res = await fetch(url, {
       cache: "no-store",
     });
-
 
     if (!res.ok) {
       const text = await res.text();
@@ -31,8 +34,13 @@ async function getProducts(): Promise<Product[]> {
   }
 }
 
-export default async function Home() {
-  const products = await getProducts();
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ search?: string }>;
+}) {
+  const { search } = await searchParams;
+  const products = await getProducts(search);
 
   return (
     <div className="flex flex-col flex-1 items-center bg-zinc-50 dark:bg-black pb-24">
@@ -70,18 +78,29 @@ export default async function Home() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-              Featured Products
+              {search ? `Search results for "${search}"` : "Featured Products"}
             </h2>
             <p className="text-zinc-500 dark:text-zinc-400 mt-2">
-              Our most popular items handpicked for you.
+              {search ? `Found ${products.length} product(s)` : "Our most popular items handpicked for you."}
             </p>
           </div>
         </div>
 
         {products.length === 0 ? (
-          <div className="text-center py-20 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800">
-            <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">No products found</h3>
-            <p className="text-zinc-500">Please make sure the backend server (Express) is running on port 5000.</p>
+          <div className="text-center py-20 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 w-full">
+            <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">
+              {search ? "No matches found" : "No products found"}
+            </h3>
+            <p className="text-zinc-500">
+              {search 
+                ? `We couldn't find anything matching "${search}". Try different keywords.` 
+                : "Please make sure the backend server (Express) is running on port 5000."}
+            </p>
+            {search && (
+              <a href="/" className="mt-6 inline-block text-emerald-500 font-semibold hover:underline">
+                Clear search
+              </a>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
