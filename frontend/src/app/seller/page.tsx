@@ -6,6 +6,8 @@ import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { API_URL } from "@/lib/api";
+
 
 export default function SellerDashboard() {
   const router = useRouter();
@@ -28,7 +30,8 @@ export default function SellerDashboard() {
   }, [user, authLoading, router]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/categories")
+    fetch(`${API_URL}/api/categories`)
+
       .then(async (res) => {
         if (!res.ok) throw new Error(`Failed to fetch categories: ${res.status}`);
         return res.json();
@@ -55,7 +58,8 @@ export default function SellerDashboard() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/products", {
+      const res = await fetch(`${API_URL}/api/products`, {
+
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...formData, sellerId: user.id }),

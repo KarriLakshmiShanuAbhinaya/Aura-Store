@@ -2,12 +2,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Product } from "@/types";
+import { API_URL } from "@/lib/api";
+
 import { ArrowLeft, Check, Truck, ShieldCheck } from "lucide-react";
 import AddToCartButton from "@/components/AddToCartButton";
 
 async function getProduct(slug: string): Promise<Product | null> {
   try {
-    const res = await fetch(`http://localhost:5000/api/products/${slug}`, {
+    const res = await fetch(`${API_URL}/api/products/${slug}`, {
+
       cache: "no-store",
     });
 

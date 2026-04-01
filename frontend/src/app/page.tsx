@@ -1,12 +1,15 @@
 import Image from "next/image";
 import ProductCard from "@/components/ProductCard";
 import { Product } from "@/types";
+import { API_URL } from "@/lib/api";
+
 
 async function getProducts(): Promise<Product[]> {
   try {
-    const res = await fetch("http://localhost:5000/api/products", {
+    const res = await fetch(`${API_URL}/api/products`, {
       cache: "no-store",
     });
+
 
     if (!res.ok) {
       const text = await res.text();

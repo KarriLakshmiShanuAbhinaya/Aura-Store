@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Minus, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { API_URL } from "@/lib/api";
+
 
 export default function CartPage() {
   const { items, removeFromCart, updateQuantity, totalPrice, clearCart } =
@@ -18,7 +20,8 @@ export default function CartPage() {
   const handleCheckout = async () => {
     setIsCheckingOut(true);
     try {
-      const res = await fetch("http://localhost:5000/api/checkout", {
+      const res = await fetch(`${API_URL}/api/checkout`, {
+
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

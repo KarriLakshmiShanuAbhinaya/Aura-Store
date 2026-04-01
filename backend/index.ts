@@ -18,7 +18,11 @@ const pool = new Pool({
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-app.use(cors());
+const FRONTEND_URL = process.env.FRONTEND_URL || '*';
+app.use(cors({
+  origin: FRONTEND_URL === '*' ? '*' : [FRONTEND_URL, 'http://localhost:3000'],
+  credentials: true
+}));
 app.use(express.json());
 
 // Auth Routes
