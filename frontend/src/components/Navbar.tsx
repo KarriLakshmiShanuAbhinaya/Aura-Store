@@ -5,11 +5,9 @@ import { ShoppingCart, User as UserIcon, LogOut, LayoutDashboard, Search, X } fr
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 
-export default function Navbar() {
-  const { totalItems } = useCart();
-  const { user, logout } = useAuth();
+function SearchBar() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams?.get("search") || "");
@@ -26,6 +24,39 @@ export default function Navbar() {
       router.push("/");
     }
   };
+
+  return (
+    <form onSubmit={handleSearch} className="relative group">
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <Search className="h-4 w-4 text-zinc-400 group-focus-within:text-emerald-500 transition-colors" />
+      </div>
+      <input
+        type="text"
+        name="search"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        placeholder="Search products..."
+        className="block w-full pl-10 pr-10 py-1.5 text-sm bg-zinc-100 dark:bg-zinc-900 border-transparent focus:border-emerald-500/50 focus:bg-white dark:focus:bg-black focus:ring-4 focus:ring-emerald-500/10 rounded-xl transition-all outline-none text-zinc-900 dark:text-zinc-100"
+      />
+      {searchQuery && (
+        <button
+          type="button"
+          onClick={() => {
+            setSearchQuery("");
+            router.push("/");
+          }}
+          className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
+    </form>
+  );
+}
+
+export default function Navbar() {
+  const { totalItems } = useCart();
+  const { user, logout } = useAuth();
 
   return (
     <nav className="w-full border-b border-zinc-200 bg-white/80 dark:border-zinc-800 dark:bg-black/80 backdrop-blur-md sticky top-0 z-50">
@@ -50,33 +81,18 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Search Bar - Professional Look */}
+          {/* Search Bar - Professional Look with Suspense for Vercel fix */}
           <div className="flex-1 max-w-md hidden md:block">
-            <form onSubmit={handleSearch} className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-zinc-400 group-focus-within:text-emerald-500 transition-colors" />
+            <Suspense fallback={
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-4 w-4 text-zinc-400" />
+                </div>
+                <div className="block w-full h-8 bg-zinc-100 dark:bg-zinc-900 rounded-xl animate-pulse" />
               </div>
-              <input
-                type="text"
-                name="search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search products..."
-                className="block w-full pl-10 pr-10 py-1.5 text-sm bg-zinc-100 dark:bg-zinc-900 border-transparent focus:border-emerald-500/50 focus:bg-white dark:focus:bg-black focus:ring-4 focus:ring-emerald-500/10 rounded-xl transition-all outline-none text-zinc-900 dark:text-zinc-100"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearchQuery("");
-                    router.push("/");
-                  }}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </form>
+            }>
+              <SearchBar />
+            </Suspense>
           </div>
           
           <div className="flex items-center gap-3 shrink-0">
